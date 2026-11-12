@@ -1,5 +1,6 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import { useEffect, useState } from "react";
 import { Star, Plus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -12,14 +13,16 @@ export default function StaffPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "PETUGAS", phone: "" });
   const [show, setShow] = useState(false);
   async function load() {
-    const r = await fetch("/api/staff");
+    const r = await mockApiFetch("/api/staff");
     const j = await parseJsonResponse(r);
     setStaff(j.staff ?? []);
   }
-  useEffect(() => { if (me) load(); }, [me]);
+  useEffect(() => {
+    if (me) queueMicrotask(() => { void load(); });
+  }, [me]);
   async function create(e: React.FormEvent) {
     e.preventDefault();
-    const r = await fetch("/api/staff", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+    const r = await mockApiFetch("/api/staff", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
     const j = await parseJsonResponse(r);
     if (!r.ok) { toast(j.error ?? "Gagal.", "err"); return; }
     toast("Petugas ditambahkan.", "ok");

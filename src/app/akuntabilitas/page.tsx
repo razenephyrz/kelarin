@@ -1,5 +1,6 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -21,8 +22,15 @@ export default function AkuntabilitasPage() {
 
   useEffect(() => {
     if (!me) return;
-    setFetching(true);
-    fetch(`/api/dashboard/stats?range=${range}`).then((r) => parseJsonResponse(r)).then((j) => { setStats(j); setFetching(false); });
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      setFetching(true);
+      mockApiFetch(`/api/dashboard/stats?range=${range}`).then((r) => parseJsonResponse(r)).then((j) => {
+        if (active) { setStats(j); setFetching(false); }
+      });
+    });
+    return () => { active = false; };
   }, [me, range]);
 
   if (loading || !me) return <div className="grid min-h-screen place-items-center bg-[#f4e9de]"><div className="card-soft p-8">Memuat…</div></div>;

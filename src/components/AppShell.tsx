@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { logoutLocal, mockApiFetch } from "@/lib/mock-api";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
@@ -103,12 +104,12 @@ export function AppShell({
   const menus = MENUS[user.role] ?? MENUS.WARGA;
 
   useEffect(() => {
-    fetch("/api/notifications?unread=1")
+    mockApiFetch("/api/notifications?unread=1")
       .then((r) => parseJsonResponse(r))
       .then((j) => setUnread(j.unread ?? 0))
       .catch(() => {});
     const t = setInterval(() => {
-      fetch("/api/notifications?unread=1")
+      mockApiFetch("/api/notifications?unread=1")
         .then((r) => parseJsonResponse(r))
         .then((j) => setUnread(j.unread ?? 0))
         .catch(() => {});
@@ -117,7 +118,7 @@ export function AppShell({
   }, []);
 
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    logoutLocal();
     router.push("/login");
     router.refresh();
   }

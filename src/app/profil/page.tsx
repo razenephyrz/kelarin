@@ -3,12 +3,13 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useMe } from "@/components/useMe";
 import { initials, parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 
 export default function ProfilPage() {
   const { me, loading } = useMe();
   const [stats, setStats] = useState<any>(null);
   useEffect(() => {
-    fetch("/api/dashboard/stats").then((r) => parseJsonResponse(r)).then(setStats).catch(() => {});
+    mockApiFetch("/api/dashboard/stats").then((r) => parseJsonResponse(r)).then(setStats).catch(() => {});
   }, []);
   if (loading || !me) return <div className="grid min-h-screen place-items-center bg-[#f4e9de]"><div className="card-soft p-8">Memuat…</div></div>;
   const roleLabel: Record<string, string> = { WARGA: "Warga", PETUGAS: "Petugas Kelurahan", RT_RW: "Ketua RT/RW", LURAH: "Lurah", CAMAT: "Camat" };

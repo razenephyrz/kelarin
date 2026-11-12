@@ -1,5 +1,6 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -31,7 +32,7 @@ function Inner() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/services").then((r) => parseJsonResponse(r)).then((j) => {
+    mockApiFetch("/api/services").then((r) => parseJsonResponse(r)).then((j) => {
       setServices(j.services ?? []);
       if (!slug && j.services?.[0]) setSlug(j.services[0].slug);
       else if (sp.get("layanan")) setSlug(sp.get("layanan")!);
@@ -41,7 +42,7 @@ function Inner() {
 
   useEffect(() => {
     if (!slug) return;
-    fetch(`/api/services/${slug}`).then((r) => parseJsonResponse(r)).then((j) => {
+    mockApiFetch(`/api/services/${slug}`).then((r) => parseJsonResponse(r)).then((j) => {
       setDetail(j.service ?? null);
       setDocs({});
       setFormData((p: any) => ({ nama: p.nama, nik: p.nik, no_hp: p.no_hp }));
@@ -72,7 +73,7 @@ function Inner() {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const r = await fetch("/api/upload", { method: "POST", body: fd });
+      const r = await mockApiFetch("/api/upload", { method: "POST", body: fd });
       const j = await parseJsonResponse(r);
       if (!r.ok) { toast(j.error ?? "Upload gagal.", "err"); return; }
       const val = { requirementKey: key, path: j.path, fileName: j.fileName, fileType: j.fileType, fileSize: j.fileSize };
@@ -110,7 +111,7 @@ function Inner() {
     setError("");
     setSubmitting(true);
     try {
-      const r = await fetch("/api/applications", {
+      const r = await mockApiFetch("/api/applications", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           serviceSlug: slug, formData, citizenNote,

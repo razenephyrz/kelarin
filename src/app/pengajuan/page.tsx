@@ -1,5 +1,6 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -25,14 +26,14 @@ function Inner() {
     const p = new URLSearchParams();
     if (query) p.set("q", query);
     if (st) p.set("status", st);
-    const r = await fetch(`/api/applications?${p.toString()}`);
+    const r = await mockApiFetch(`/api/applications?${p.toString()}`);
     const j = await parseJsonResponse(r);
     setApps(j.applications ?? []);
     setFetching(false);
   }
 
   useEffect(() => {
-    if (me) load(sp.get("q") ?? "", "");
+    if (me) queueMicrotask(() => { void load(sp.get("q") ?? "", ""); });
     // eslint-disable-next-line
   }, [me]);
 

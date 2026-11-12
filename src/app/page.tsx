@@ -1,5 +1,6 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Search, Clock, FileCheck2, BellRing, ChevronDown, ArrowRight, ShieldCheck, Zap, Star } from "lucide-react";
@@ -15,7 +16,7 @@ export default function Landing() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
-    fetch("/api/services").then((r) => parseJsonResponse(r)).then((j) => { setServices(j.services ?? []); setCats(j.categories ?? []); }).catch(() => {});
+    mockApiFetch("/api/services").then((r) => parseJsonResponse(r)).then((j) => { setServices(j.services ?? []); setCats(j.categories ?? []); }).catch(() => {});
   }, []);
 
   const filtered = services.filter((s) => {

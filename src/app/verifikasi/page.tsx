@@ -1,5 +1,6 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
@@ -14,8 +15,7 @@ export default function VerifikasiPage() {
   const [tab, setTab] = useState("MENUNGGU_VERIFIKASI");
 
   useEffect(() => {
-    if (me) fetch("/api/applications").then((r) => parseJsonResponse(r)).then((j) => { setApps(j.applications ?? []); setFetching(false); });
-    // eslint-disable-next-line
+    if (me) mockApiFetch("/api/applications").then((r) => parseJsonResponse(r)).then((j) => { setApps(j.applications ?? []); setFetching(false); });
   }, [me]);
 
   if (loading || !me) return <div className="grid min-h-screen place-items-center bg-[#f4e9de]"><div className="card-soft p-8">Memuat…</div></div>;

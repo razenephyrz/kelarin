@@ -1,5 +1,6 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Search, Zap } from "lucide-react";
@@ -11,7 +12,7 @@ export default function LayananPage() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("");
   useEffect(() => {
-    fetch("/api/services").then((r) => parseJsonResponse(r)).then((j) => { setServices(j.services ?? []); setCats(j.categories ?? []); });
+    mockApiFetch("/api/services").then((r) => parseJsonResponse(r)).then((j) => { setServices(j.services ?? []); setCats(j.categories ?? []); });
   }, []);
   const filtered = services.filter((s) => {
     if (cat && s.category !== cat) return false;

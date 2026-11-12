@@ -1,5 +1,6 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Radar, Search } from "lucide-react";
@@ -17,16 +18,15 @@ export default function TrackingPage() {
   const [detail, setDetail] = useState<any>(null);
 
   useEffect(() => {
-    if (me) fetch("/api/applications").then((r) => parseJsonResponse(r)).then((j) => {
+    if (me) mockApiFetch("/api/applications").then((r) => parseJsonResponse(r)).then((j) => {
       setApps(j.applications ?? []);
       if (j.applications?.[0]) select(j.applications[0]);
     });
-    // eslint-disable-next-line
   }, [me]);
 
   async function select(a: any) {
     setSelected(a);
-    const r = await fetch(`/api/applications/${a.id}`);
+    const r = await mockApiFetch(`/api/applications/${a.id}`);
     const j = await parseJsonResponse(r);
     setDetail(j);
   }

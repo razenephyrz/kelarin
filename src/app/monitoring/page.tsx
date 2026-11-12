@@ -1,5 +1,6 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
@@ -14,9 +15,8 @@ export default function MonitoringPage() {
   const [status, setStatus] = useState("");
   useEffect(() => {
     if (!me) return;
-    fetch("/api/dashboard/stats").then((r) => parseJsonResponse(r)).then(setStats);
-    fetch("/api/applications").then((r) => parseJsonResponse(r)).then((j) => setApps(j.applications ?? []));
-    // eslint-disable-next-line
+    mockApiFetch("/api/dashboard/stats").then((r) => parseJsonResponse(r)).then(setStats);
+    mockApiFetch("/api/applications").then((r) => parseJsonResponse(r)).then((j) => setApps(j.applications ?? []));
   }, [me]);
   if (loading || !me) return <div className="grid min-h-screen place-items-center bg-[#f4e9de]"><div className="card-soft p-8">Memuat…</div></div>;
   if (err) return <div className="grid min-h-screen place-items-center p-4"><div className="card-soft p-6">{err}</div></div>;

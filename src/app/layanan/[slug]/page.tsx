@@ -1,5 +1,6 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { ArrowLeft, Clock, Zap, Info } from "lucide-react";
@@ -10,7 +11,7 @@ export default function LayananDetail({ params }: { params: Promise<{ slug: stri
   const [svc, setSvc] = useState<any>(null);
   const [err, setErr] = useState("");
   useEffect(() => {
-    fetch(`/api/services/${slug}`).then(async (r) => {
+    mockApiFetch(`/api/services/${slug}`).then(async (r) => {
       const j = await parseJsonResponse(r);
       if (!r.ok) setErr(j.error ?? "Tidak ditemukan");
       else setSvc(j.service);

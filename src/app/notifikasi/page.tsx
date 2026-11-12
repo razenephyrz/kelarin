@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { useMe } from "@/components/useMe";
 import { Skeleton, EmptyState, toast } from "@/components/ui";
 import { timeAgo, parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 
 export default function NotifPage() {
   const { me, loading } = useMe();
@@ -13,19 +14,21 @@ export default function NotifPage() {
   const [fetching, setFetching] = useState(true);
   async function load() {
     setFetching(true);
-    const r = await fetch("/api/notifications");
+    const r = await mockApiFetch("/api/notifications");
     const j = await parseJsonResponse(r);
     setItems(j.notifications ?? []);
     setFetching(false);
   }
-  useEffect(() => { if (me) load(); }, [me]);
+  useEffect(() => {
+    if (me) queueMicrotask(() => { void load(); });
+  }, [me]);
   async function markAll() {
-    await fetch("/api/notifications", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ all: true }) });
+    await mockApiFetch("/api/notifications", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ all: true }) });
     toast("Semua ditandai dibaca.", "ok");
     load();
   }
   async function markOne(id: string) {
-    await fetch(`/api/notifications?id=${id}`, { method: "PATCH" });
+    await mockApiFetch(`/api/notifications?id=${id}`, { method: "PATCH" });
     load();
   }
   if (loading || !me) return <div className="grid min-h-screen place-items-center bg-[#f4e9de]"><div className="card-soft p-8">Memuat…</div></div>;

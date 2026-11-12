@@ -1,5 +1,5 @@
 "use client";
-import { parseJsonResponse } from "@/lib/utils";
+import { getLocalUser } from "@/lib/mock-api";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -7,24 +7,26 @@ export type Me = { id: string; name: string; email: string; role: string; phone?
 
 export function useMe(allowed?: string[]) {
   const router = useRouter();
+  const allowedRoles = allowed?.join("|");
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then(async (r) => {
-        const j = await parseJsonResponse(r);
-        if (!r.ok || !j.user) {
-          router.push("/login");
-          return;
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      const user = getLocalUser();
+      if (!user) router.push("/login");
+      else {
+        const roles = allowedRoles?.split("|");
+        if (roles && !roles.includes(user.role)) {
+          setErr(`Halaman ini membutuhkan role ${roles.join("/")} (Anda: ${user.role}).`);
         }
-        if (allowed && !allowed.includes(j.user.role)) {
-          setErr(`Halaman ini membutuhkan role ${allowed.join("/")} (Anda: ${j.user.role}).`);
-        }
-        setMe(j.user);
-      })
-      .catch(() => router.push("/login"))
-      .finally(() => setLoading(false));
-  }, []);
+        setMe(user);
+      }
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, [allowedRoles, router]);
   return { me, loading, err };
 }

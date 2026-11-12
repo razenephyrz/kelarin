@@ -1,5 +1,6 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -13,9 +14,8 @@ export default function LaporanPage() {
   const [apps, setApps] = useState<any[]>([]);
   useEffect(() => {
     if (!me) return;
-    fetch("/api/dashboard/stats?range=all").then((r) => parseJsonResponse(r)).then(setStats);
-    fetch("/api/applications").then((r) => parseJsonResponse(r)).then((j) => setApps(j.applications ?? []));
-    // eslint-disable-next-line
+    mockApiFetch("/api/dashboard/stats?range=all").then((r) => parseJsonResponse(r)).then(setStats);
+    mockApiFetch("/api/applications").then((r) => parseJsonResponse(r)).then((j) => setApps(j.applications ?? []));
   }, [me]);
   if (loading || !me) return <div className="grid min-h-screen place-items-center">Memuat…</div>;
   if (err) return <div className="grid min-h-screen place-items-center p-4"><div className="card-soft p-6">{err}</div></div>;

@@ -1,10 +1,15 @@
 "use client";
-import { parseJsonResponse } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PublicNav, PublicFooter } from "@/components/Public";
 import { Field, ToastHost, toast } from "@/components/ui";
+import { loginLocal } from "@/lib/mock-api";
+
+function getRoleRedirectPath(role: string) {
+  const paths: Record<string, string> = { WARGA: "/dashboard", PETUGAS: "/verifikasi", RT_RW: "/persetujuan", LURAH: "/dashboard", CAMAT: "/persetujuan" };
+  return paths[role] ?? "/dashboard";
+}
 
 const DEMO = [
   { role: "Warga", email: "warga@kelar.in", pass: "warga123" },
@@ -27,14 +32,14 @@ export default function LoginPage() {
     if (!email || !password) { setErr("Email dan password wajib diisi."); return; }
     setLoading(true);
     try {
-      const r = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
-      const j = await parseJsonResponse(r);
-      if (!r.ok) { setErr(j.error ?? "Login gagal."); return; }
+      const user = loginLocal(email, password);
+      if (!user) { setErr("Email atau password salah."); return; }
       toast("Login berhasil. Mengalihkan…", "ok");
-      router.push(j.redirectTo ?? "/dashboard");
+      router.push(getRoleRedirectPath(user.role));
       router.refresh();
-    } catch {
-      setErr("Jaringan bermasalah. Coba lagi.");
+    } catch (error) {
+      console.error("Login dummy gagal.", error);
+      setErr("Login gagal. Coba lagi.");
     } finally {
       setLoading(false);
     }

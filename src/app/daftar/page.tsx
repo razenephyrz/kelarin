@@ -1,10 +1,10 @@
 "use client";
-import { parseJsonResponse } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PublicNav, PublicFooter } from "@/components/Public";
 import { Field, ToastHost, toast } from "@/components/ui";
+import { registerLocal } from "@/lib/mock-api";
 
 export default function DaftarPage() {
   const router = useRouter();
@@ -19,13 +19,12 @@ export default function DaftarPage() {
     if (!form.name || !form.email || !form.password) { setErr("Nama, email, password wajib diisi."); return; }
     setLoading(true);
     try {
-      const r = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-      const j = await parseJsonResponse(r);
-      if (!r.ok) { setErr(j.error ?? "Gagal mendaftar."); return; }
+      const message = registerLocal(form);
+      if (message) { setErr(message); return; }
       toast("Pendaftaran berhasil.", "ok");
       router.push("/dashboard");
       router.refresh();
-    } catch { setErr("Jaringan bermasalah."); } finally { setLoading(false); }
+    } catch (error) { console.error("Pendaftaran dummy gagal.", error); setErr("Pendaftaran gagal."); } finally { setLoading(false); }
   }
 
   return (

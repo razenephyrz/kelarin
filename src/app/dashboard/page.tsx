@@ -1,5 +1,6 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FilePlus2, Clock, Star, ArrowRight, Zap, AlertTriangle } from "lucide-react";
@@ -18,8 +19,8 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!me) return;
     Promise.all([
-      fetch("/api/dashboard/stats?range=6m").then((r) => parseJsonResponse(r)).catch(() => ({})),
-      fetch("/api/applications").then((r) => parseJsonResponse(r)).catch(() => ({ applications: [] })),
+      mockApiFetch("/api/dashboard/stats?range=6m").then((r) => parseJsonResponse(r)).catch(() => ({})),
+      mockApiFetch("/api/applications").then((r) => parseJsonResponse(r)).catch(() => ({ applications: [] })),
     ]).then(([s, a]) => {
       setStats(s);
       setApps(a.applications ?? []);

@@ -1,7 +1,8 @@
 "use client";
 import { parseJsonResponse } from "@/lib/utils";
+import { mockApiFetch } from "@/lib/mock-api";
 import Link from "next/link";
-import { use, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { ArrowLeft, Download, Star, UploadCloud, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useMe } from "@/components/useMe";
@@ -23,21 +24,22 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const [fixFiles, setFixFiles] = useState<Record<string, any>>({});
   const [rating, setRating] = useState({ score: 5, category: "KECEPATAN", comment: "" });
 
-  async function load() {
+  const load = useCallback(async () => {
     setFetching(true);
-    const r = await fetch(`/api/applications/${id}`);
+    const r = await mockApiFetch(`/api/applications/${id}`);
     const j = await parseJsonResponse(r);
     if (!r.ok) setErr(j.error ?? "Gagal memuat.");
     else setData(j);
     setFetching(false);
-  }
-  useEffect(() => { if (me) load(); // eslint-disable-next-line
-  }, [me]);
+  }, [id]);
+  useEffect(() => {
+    if (me) queueMicrotask(() => { void load(); });
+  }, [me, load]);
 
   async function doTransition(action: string, extra: any = {}) {
     setBusy(true);
     try {
-      const r = await fetch(`/api/applications/${id}/transition`, {
+      const r = await mockApiFetch(`/api/applications/${id}/transition`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, note, ...extra }),
       });
@@ -54,7 +56,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     if (!note) { toast("Alasan tertulis wajib diisi.", "err"); return; }
     setBusy(true);
     try {
-      const r = await fetch(`/api/applications/${id}/priority`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ decision, note }) });
+      const r = await mockApiFetch(`/api/applications/${id}/priority`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ decision, note }) });
       const j = await parseJsonResponse(r);
       if (!r.ok) { toast(j.error ?? "Gagal.", "err"); setBusy(false); return; }
       toast("Keputusan prioritas tersimpan.", "ok");
@@ -66,7 +68,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   async function uploadFix(key: string, file: File | undefined) {
     if (!file) return;
     const fd = new FormData(); fd.append("file", file);
-    const r = await fetch("/api/upload", { method: "POST", body: fd });
+    const r = await mockApiFetch("/api/upload", { method: "POST", body: fd });
     const j = await parseJsonResponse(r);
     if (!r.ok) { toast(j.error ?? "Upload gagal.", "err"); return; }
     setFixFiles((p) => ({ ...p, [key]: { requirementKey: key, path: j.path, fileName: j.fileName, fileType: j.fileType, fileSize: j.fileSize } }));
@@ -77,11 +79,11 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
     const arr = Object.values(fixFiles);
     if (!arr.length) { toast("Unggah minimal satu berkas perbaikan.", "err"); return; }
     setBusy(true);
-    const r = await fetch(`/api/applications/${id}/documents`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ documents: arr }) });
+    const r = await mockApiFetch(`/api/applications/${id}/documents`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ documents: arr }) });
     const j = await parseJsonResponse(r);
     if (!r.ok) { toast(j.error ?? "Gagal.", "err"); setBusy(false); return; }
     // auto resubmit
-    const r2 = await fetch(`/api/applications/${id}/transition`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "resubmit", note: "Perbaikan dokumen dikirim." }) });
+    const r2 = await mockApiFetch(`/api/applications/${id}/transition`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "resubmit", note: "Perbaikan dokumen dikirim." }) });
     if (!r2.ok) { const jj = await parseJsonResponse(r2); toast(jj.error ?? "Perbaikan tersimpan, kirim ulang manual.", "err"); }
     else toast("Perbaikan dikirim untuk verifikasi ulang.", "ok");
     setFixFiles({}); setBusy(false); await load();
@@ -89,7 +91,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
 
   async function submitRating() {
     setBusy(true);
-    const r = await fetch(`/api/applications/${id}/rating`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rating) });
+    const r = await mockApiFetch(`/api/applications/${id}/rating`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rating) });
     const j = await parseJsonResponse(r);
     if (!r.ok) { toast(j.error ?? "Gagal memberi rating.", "err"); setBusy(false); return; }
     toast("Terima kasih atas penilaian!", "ok");
@@ -283,7 +285,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
             <p className="mt-2 rounded-xl bg-[#faf5ef] p-2.5 text-[12px] text-[#5f5752]">SLA berjalan setelah verifikasi • dijeda saat menunggu warga • hari kerja Senin–Jumat (ilustratif).</p>
             {app.status === "SELESAI" && (
               <div className="mt-3 space-y-2">
-                <a href={`/api/applications/${app.id}/download`} className="btn-terra flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold"><Download size={15} /> Unduh surat (SIMULASI)</a>
+                <Link href={`/pengajuan/${app.id}/surat`} className="btn-terra flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold"><Download size={15} /> Unduh surat (SIMULASI)</Link>
                 <Link href={`/pengajuan/${app.id}/surat`} className="block rounded-xl border border-[#5f3d4e] px-4 py-2.5 text-center text-sm font-bold text-[#5f3d4e]">Pratinjau surat</Link>
                 <p className="text-[11px] text-[#7a6f6a]">Watermark SIMULASI / BUKAN DOKUMEN RESMI. Tanpa TTE resmi.</p>
               </div>
